@@ -1,0 +1,1 @@
+i wanted to make them customizable, so i left them in an image format instead of using solid graphic colors. (i saw people in my server making custom hitboxes)

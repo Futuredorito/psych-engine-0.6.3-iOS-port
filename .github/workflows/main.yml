@@ -1,0 +1,156 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Build
+
+# Controls when the action will run.
+on: [push, workflow_dispatch]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  releaseBuild:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@main
+        id: setup-ndk
+        with:
+          ndk-version: r21e
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@main
+        with:
+          distribution: 'zulu'
+          java-version: '18'
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1.2.0
+        with:
+          haxe-version: 4.2.5
+
+      - name: Restore Cache
+        uses: actions/cache@main
+        with:
+          # not caching the bin folder to prevent asset duplication and stuff like that
+          key: cache-build-android-release
+          path: |
+            .haxelib/
+            export/release/android/haxe/
+            export/release/android/obj/
+          restore-keys: |
+            cache-build-android-release
+
+      - name: Installing Libraries
+        run: |
+          haxelib setup ~/haxelib
+          haxelib --quiet install hxcpp > /dev/null
+          haxe -cp ./actions -D analyzer-optimize -main Main --interp
+
+      - name: Configure Android
+        run: |
+          haxelib run lime setup -alias -y
+          haxelib run lime config ANDROID_SDK $ANDROID_HOME
+          haxelib run lime config ANDROID_NDK_ROOT $ANDROID_NDK_HOME
+          haxelib run lime config JAVA_HOME $JAVA_HOME
+          haxelib run lime config ANDROID_SETUP true
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Building
+        run: haxelib run lime build android --app-version="4.0.0-${{ github.run_id}}"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: androidBuild
+          path: export/release/android/bin/app/build/outputs/apk/debug
+          if-no-files-found: error
+
+      - name: Uploading Cache
+        uses: actions/cache@main
+        with:
+          # caching again since for some reason it doesnt work with the first post cache shit
+          key: cache-build-android-release
+          path: |
+            .haxelib/
+            export/release/android/haxe/
+            export/release/android/obj/
+          restore-keys: |
+            cache-build-android-release
+  debugBuild:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@main
+        id: setup-ndk
+        with:
+          ndk-version: r21e
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@main
+        with:
+          distribution: 'zulu'
+          java-version: '18'
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1.2.0
+        with:
+          haxe-version: 4.2.5
+
+      - name: Restore Cache
+        uses: actions/cache@main
+        with:
+          # not caching the bin folder to prevent asset duplication and stuff like that
+          key: cache-build-android-debug
+          path: |
+            .haxelib/
+            export/debug/android/haxe/
+            export/debug/android/obj/
+          restore-keys: |
+            cache-build-android-debug
+
+      - name: Installing Libraries
+        run: |
+          haxelib setup ~/haxelib
+          haxelib --quiet install hxcpp > /dev/null
+          haxe -cp ./actions -D analyzer-optimize -main Main --interp
+
+      - name: Configure Android
+        run: |
+          haxelib run lime setup -alias -y
+          haxelib run lime config ANDROID_SDK $ANDROID_HOME
+          haxelib run lime config ANDROID_NDK_ROOT $ANDROID_NDK_HOME
+          haxelib run lime config JAVA_HOME $JAVA_HOME
+          haxelib run lime config ANDROID_SETUP true
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Building
+        run: haxelib run lime build android -debug --app-version="4.0.0-${{ github.run_id}}"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: androidBuild-DEBUG
+          path: export/debug/android/bin/app/build/outputs/apk/debug
+          if-no-files-found: error
+
+      - name: Uploading Cache
+        uses: actions/cache@main
+        with:
+          # caching again since for some reason it doesnt work with the first post cache shit
+          key: cache-build-android-debug
+          path: |
+            .haxelib/
+            export/debug/android/haxe/
+            export/debug/android/obj/
+          restore-keys: |
+            cache-build-android-debug

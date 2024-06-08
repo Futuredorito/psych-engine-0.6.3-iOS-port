@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<TextureAtlas imagePath="ShiftHitbox.png">
+<SubTexture name="down" x="0" y="0" width="320" height="540" frameX="0" frameY="0" frameWidth="320" frameHeight="540" />
+<SubTexture name="left" x="320" y="0" width="320" height="540" frameX="0" frameY="0" frameWidth="320" frameHeight="540" />
+<SubTexture name="right" x="640" y="0" width="320" height="540" frameX="0" frameY="0" frameWidth="320" frameHeight="540" />
+<SubTexture name="up" x="960" y="0" width="320" height="540" frameX="0" frameY="0" frameWidth="320" frameHeight="540" />
+<SubTexture name="shift" x="0" y="540" width="640" height="180" frameX="0" frameY="0" frameWidth="640" frameHeight="180" />
+<SubTexture name="space" x="640" y="540" width="640" height="180" frameX="0" frameY="0" frameWidth="640" frameHeight="180" />
+</TextureAtlas>
